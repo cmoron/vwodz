@@ -1,19 +1,32 @@
 <!DOCTYPE html>
 <html lang="fr">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Wodz</title>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Wodz</title>
 
-        <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-        <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
-    </head>
-    <body>
-        <h1>Wodz</h1>
-        <div id="app">
-            {{ info }}
-        </div>
-        <script src="js/functions.js"></script>
-    </body>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <link rel="stylesheet" href="css/style.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div id="app">
+      <h1>{{ page_title }}</h1>
+      <session
+        v-for="session in sessions"
+        :key="session.index"
+        :even="session.even"
+        :odd="session.odd"
+        :name="session.name">
+      </session>
+
+      <block
+        v-for="block in blocks"
+        :key="block.id"
+        :name="block.name">
+      </blok>
+    </div>
+    <script src="js/functions.js"></script>
+  </body>
 </html>
