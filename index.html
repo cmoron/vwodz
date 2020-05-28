@@ -21,11 +21,25 @@
         :name="session.name">
       </session>
 
+      <group
+        v-for="group in groups"
+        :key="group.id"
+        :repeat="group.repeat">
+      </group>
+
       <block
         v-for="block in blocks"
         :key="block.id"
         :name="block.name">
-      </blok>
+      </block>
+
+      <exercise
+        v-for="exercise in exercises"
+        :key="exercise.id"
+        :rep="exercise.repeat"
+        :name="exercise.name">
+      </exercise>
+
     </div>
     <script src="js/functions.js"></script>
   </body>
