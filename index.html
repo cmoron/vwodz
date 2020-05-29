@@ -13,32 +13,12 @@
   <body>
     <div id="app">
       <h1>{{ page_title }}</h1>
+
       <session
         v-for="session in sessions"
-        :key="session.index"
-        :even="session.even"
-        :odd="session.odd"
-        :name="session.name">
-      </session>
-
-      <group
-        v-for="group in groups"
-        :key="group.id"
-        :repeat="group.repeat">
-      </group>
-
-      <block
-        v-for="block in blocks"
-        :key="block.id"
-        :name="block.name">
-      </block>
-
-      <exercise
-        v-for="exercise in exercises"
-        :key="exercise.id"
-        :rep="exercise.repeat"
-        :name="exercise.name">
-      </exercise>
+        :session="session"
+        :key="session.id"
+      ></session>
 
     </div>
     <script src="js/functions.js"></script>

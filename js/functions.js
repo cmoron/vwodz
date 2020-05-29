@@ -1,97 +1,187 @@
-var app = new Vue({
-  el: '#app',
-  data: {
-    page_title: 'Wodz',
-    message: 'Hello Vue!',
-    sessions : [],
-    blocks : [],
-    groups : [],
-    exercises : [],
-  },
-  mounted() {
+let exercise = { 
 
-    // Get sessions
-    axios.get('http://localhost:3000/api/sessions').then(sessionResponse => {
-      for (let index = 0; index < sessionResponse.data.length; index++) {
-        this.sessions.push({
-          index: index,
-          name: sessionResponse.data[index].name,
-          even: index % 2 == 0 ? true : false,
-          odd: index % 2 == 1 ? true : false
-        });
+    props: {
+        exercise: Object
+    },
 
-
-        for (groupId of sessionResponse.data[index].groups) {
-          axios.get('http://localhost:3000/api/group/' + groupId).then(groupResponse => {
-
-            this.groups.push(groupResponse.data);
-            console.log(this.groups);
-
-            for (blockId of groupResponse.data.blocks) {
-              axios.get('http://localhost:3000/api/block/' + blockId).then(blockResponse => {
-                this.blocks.push(blockResponse.data);
-
-                for (exerciseId of blockResponse.data.exercises) {
-                  axios.get('http://localhost:3000/api/exercise/' + exerciseId).then(exerciseResponse => {
-                    this.exercises.push(exerciseResponse.data);
-                  });
-                }
-              });
-            }
-          });
-        }
-      }
-      console.log(this.sessions);
-    })
-    .catch(err => {
-      console.log(err);
-    })
-  }
-});
-
-Vue.component('session', {
-  props: [
-    'index',
-    'even',
-    'odd',
-    'name',
-  ],
-
-  template: `
-    <div class="session">
-      <h2 :class="{even: even, odd: odd}">{{ name }}</h2>
-    </div>
+    template: `
+        <li class="ex_li">
+            <span class="exercise">
+            <span class="ex_repeat">{{ this.exercise.repeat }}</span>
+            <span class="ex_name">{{ this.exercise.name }}</span>
+            </span>
+        </li>
     `
-});
+}
 
-Vue.component('group', {
-  props: [
-    'repeat'
-  ],
+let block = {
+    data: function() {
+        return {
+            exercises: []
+        }
+    },
 
-  template: `<div>{{ repeat }}</div>`
-});
+    props: {
+        block: Object
+    },
 
-Vue.component('block', {
-  props: [
-    'name'
-  ],
+    components: {
+        exercise
+    },
 
-  template: `
-    <h3>{{ name }}</h3>
-  `
-});
+    mounted() {
+        for (blockExercises of this.block.exercises) {
+            axios.get('http://localhost:3000/api/exercise/' + blockExercises).then(exerciseResponse => {
+                this.exercises.push(exerciseResponse.data);
+            }).catch(err => {
+                console.error("Failed to load exercise with id: " + blockExercise, err);
+            });
+        }
+    },
 
-Vue.component('exercise', {
-  props: [
-    'rep',
-    'name'
-  ],
+    template: `
+        <div>
+            <h3>{{ block.name }}</h3>
 
-  template: `
-    <div class="exercise">
-      <span class="ex_repeat">{{ rep }}</span>
-      <span class="ex_name">{{ name }}</span>
+            <ul class="ex_ul">
+                <li class="ex_li" v-for="exercise of this.exercises">
+                    <exercise
+                        :exercise="exercise"
+                        :key="exercise.id"
+                    ></exercise>
+                </li>
+            </ul>
+        </div>
+    `
+}
+
+let group = {
+
+    data: function() {
+        return {
+            blocks: []
+        }
+    },
+
+    props: {
+        group: Object
+    },
+
+    mounted() {
+        for (groupBlock of this.group.blocks) {
+            axios.get('http://localhost:3000/api/block/' + groupBlock).then(blockResponse => {
+                this.blocks.push(blockResponse.data);
+            }).catch(err => {
+                console.error("Failed to load block with id : " + groupBlock, err);
+            });
+        }
+    },
+
+    template: `
+    <tr>
+        <th>{{ group.repeat }}</th>
+        <td>
+            <p v-for="block in this.blocks">
+                {{ block.name }}
+            </p>
+        </td>
+    </tr>`
+}
+
+let session = {
+
+    data: function() {
+        return {
+            groups: [],
+            blocks: [],
+            display: false
+        }
+    },
+
+    props: {
+        session: Object,
+    },
+
+    components: {
+        block,
+        group
+    },
+
+    methods: {
+        toggleSession() {
+            this.display = !this.display;
+        }
+    },
+
+    mounted() {
+        for (sessionGroup of this.session.groups) {
+            axios.get('http://localhost:3000/api/group/' + sessionGroup).then(groupResponse => {
+                this.groups.push(groupResponse.data);
+
+                for (sessionBlock of groupResponse.data.blocks) {
+                    axios.get('http://localhost:3000/api/block/' + sessionBlock).then(blockResponse => {
+                        this.blocks.push(blockResponse.data);
+                    }).catch(err => {
+                        console.error("Failed to load block with id : " + sessionBlock, err);
+                    });
+                }
+
+            }).catch(err => {
+                console.error("Failed to load group with id : " + sessionGroup, err);
+            });
+        }
+    },
+
+    template: `
+    <div class="session">
+        <h2 :class="{ even: session.even, odd: !session.even }" @click="toggleSession">{{ session.name }}</h2>
+        <div class="wod_content" v-show="display">
+                <block
+                    v-for="block in blocks"
+                    :block="block"
+                    :key="block.id"
+                ></block>
+            <div class="structure">
+                <h3>WOD</h3>
+                <div class="structure_content">
+                    <table>
+                        <group
+                            v-for="group in groups"
+                            :group="group"
+                            :key="group.id"
+                        ></group>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
   `
+}
+
+var app = new Vue({
+    el: '#app',
+    data: {
+        page_title: 'Wodz',
+        sessions: []
+    },
+
+    components: {
+        session
+    },
+
+    mounted() {
+
+        axios.get('http://localhost:3000/api/sessions').then(sessionResponse => {
+            index = 0;
+            for(sessionData of sessionResponse.data) {
+                this.sessions.push({
+                    id: sessionData._id,
+                    name: sessionData.name,
+                    groups: sessionData.groups,
+                    even: index % 2 == 0
+                });
+                ++index
+            }
+        })
+    }
 });
